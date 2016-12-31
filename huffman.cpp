@@ -15,8 +15,26 @@ bool Huffman::Node::isEOF() {
     return isEnd() && value == 0;
 }
 
+Huffman::Node::~Node() {
+    if(child[0]) delete child[0];
+    if(child[1]) delete child[1];
+    child[0] = child[1] = NULL;
+}
+
 Huffman::Huffman() {
     root = nowAt = NULL, isInit = false;
+    memset(table, 0, sizeof(table));
+}
+
+Huffman::~Huffman() {
+    delete root;
+    nowAt = root = NULL;
+    isInit = false;
+}
+
+bool Huffman::cmp(const HeapNode& a, const HeapNode& b) {
+    if(a.first != b.first) return a.first > b.first;
+    return a.second->value > b.second->value;
 }
 
 HuffmanState Huffman::init(const vector<HuffmanChar> w) {
@@ -27,6 +45,7 @@ HuffmanState Huffman::init(const vector<HuffmanChar> w) {
 
     try {
         nodes = new Node* [n];
+        // The memory will free by huffman destructor.
         for(int i = 0; i < n; ++i) {
             nodes[i] = new Node();
             nodes[i]->value = w[i].second;
@@ -36,10 +55,10 @@ HuffmanState Huffman::init(const vector<HuffmanChar> w) {
         return wrong;
     }
 
-    typedef pair<int, Huffman::Node*> HeapNode;;
-    priority_queue<HeapNode> heap;
+    typedef bool (*comp)(const HeapNode&, const HeapNode&);
+    priority_queue<HeapNode, vector<HeapNode>, comp> heap;
     for(int i = 0; i < n; ++i)
-        heap.push(make_pair(-w[i].first, nodes[i]));
+        heap.push(make_pair(w[i].first, nodes[i]));
 
     while((int) heap.size() > 1) {
         HeapNode left = heap.top();
@@ -55,20 +74,28 @@ HuffmanState Huffman::init(const vector<HuffmanChar> w) {
     return success;
 }
 
-HuffmanResponse Huffman::walk(const bool lr) {
-    if(!isInit) return make_pair(unInit, 0);
+HuffmanState Huffman::walk(const bool lr, char &ret) {
+    ret = 0;
+    if(!isInit) return unInit;
     if(nowAt == NULL) nowAt = root;
-    if(nowAt->child[lr] == NULL) return make_pair(wrong, 0);
+    if(nowAt->child[lr] == NULL) return wrong;
     nowAt = nowAt->child[lr];
     if(nowAt->isEOF()) {
         nowAt = NULL;
-        return make_pair(eof, 0);
+        return eof;
     }
     if(nowAt->isEnd()) {
-        char character = nowAt->value;
+        ret = nowAt->value;
         nowAt = root;
-        return make_pair(hit, character);
+        return hit;
     }
-    return make_pair(miss, 0);
+    return miss;
+}
+
+HuffmanState Huffman::query(char character, const char*& ret) const {
+    ret = NULL;
+    if(!strlen(table[(int) character])) return wrong;
+    ret = table[(int) character];
+    return success;
 }
 

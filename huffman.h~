@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <vector>
 #include <queue>
+#include <cstring>
 using namespace std;
 
 typedef pair<int, char> HuffmanChar;
@@ -14,8 +15,6 @@ typedef enum {hit, miss, eof, wrong, success, unInit} HuffmanState;
 // success: success finish function wrong: wrong data
 typedef pair<HuffmanState, char> HuffmanResponse;
 
-class wrongdata : exception {};
-
 class Huffman {
 
 private:
@@ -24,7 +23,7 @@ private:
         Node *child[2];
         char value;
 
-        Node(const Node* left = NULL, const Node* right = NULL, const char value = (char) 0);
+        Node(Node* left = NULL, Node* right = NULL, char value = (char) 0);
 
         bool isEnd();
         /**
@@ -35,11 +34,20 @@ private:
         /**
          * Check wheather this node means the EOF flag.
          */
+
+        ~Node();
     };
     Node *root;
     bool isInit;
 
     Node *nowAt;
+
+    char table[256][300];
+
+    ~Huffman();
+
+    typedef pair<int, Node*> HeapNode;
+    bool cmp(const HeapNode&, const HeapNode&);
 
 public:
     Huffman();
@@ -47,15 +55,29 @@ public:
     HuffmanState init(const vector<HuffmanChar> freqAndChar);
     /**
      * freqAndChar: An array with frequency and character. 
+     * Each character occurs once in vector.
      * numOfChar: A positive integer the number of character.
      * Construct a huffman tree by its character(ascii) and frequency.
+     * Return success if normal, otherwise wrong.
      * */
 
-    HuffmanResponse walk(const bool zeroOrOne);
+    HuffmanState walk(const bool zeroOrOne, char &resultCharacter);
     /**
      * zeroOrOne: Indicate the next step is zero or one.
+     * resultCharacter: If hit a character, it will store in it.
      * Walk in the huffman tree with indication lr.
      * Response the situation of this huffman node.
+     * hit for hit a character
+     * wrong for wrong input data (this step encode nothing).
+     * eof for end of file.
+     * miss for other.
+     * */
+
+    HuffmanState query(char character, const char*& huffmanCode) const;
+    /**
+     * character: query the huffman code correspond to it.
+     * huffmanCode: character pointer point to huffmancode.
+     * If not this character encrypt, return wrong flag.
      * */
 };
 
