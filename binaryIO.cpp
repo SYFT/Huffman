@@ -39,6 +39,20 @@ IOState Dumper<T>::writeBit(bool nextBit) {
 }
 
 template<int T>
+IOState Dumper<T>::writeInt(int nextInt) {
+    if(isBad()) return fail;
+
+    bool bits[32];
+    for(int i = 0, x = nextInt; i < 32; ++i, x >>= 1)
+        bits[i] = x & 1;
+    for(int i = 31; i >= 0; --i) {
+        IOState s = writeBit(bits[i]);
+        if(s == fail) return fail;
+    }
+    return success;
+}
+
+template<int T>
 Dumper<T>::~Dumper() {
     reset();
     out->flush();
@@ -91,6 +105,21 @@ IOState Loader<T>::readBit(bool& nextBit) {
     else if(bitIndex >= bitLimit) {
         reset();
         bad = true;
+    }
+
+    return success;
+}
+
+template<int T>
+IOState Loader<T>::readInt(int& nextInt) {
+    if(isBad()) return fail;
+
+    nextInt = 0;
+    for(int i = 31; i >= 0; --i) {
+        bool x;
+        IOState s = readBit(x);
+        if(s == fail) return fail;
+        nextInt = (nextInt << 1) | x;
     }
 
     return success;
