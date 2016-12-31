@@ -45,6 +45,11 @@ public:
     /**
      * Write next bit as nextBit.
      * */
+
+    IOState writeInt(int nextInt);
+    /**
+     * Write a integer in binary.
+     * */
 };
 
 template<int T>
@@ -81,6 +86,11 @@ public:
     IOState readBit(bool& nextBit);
     /**
      * Set nextBit as istream next bit.
+     * */
+
+    IOState readInt(int &nextInt);
+    /**
+     * Read binary bits as an int.
      * */
 };
 
