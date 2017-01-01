@@ -10,9 +10,9 @@ using namespace std;
 
 typedef pair<int, char> HuffmanChar;
 // character and frequency
-typedef enum {hit, miss, eof, wrong, success, unInit} HuffmanState;
+typedef enum {hit, miss, eof, wrong, good, unInit} HuffmanState;
 // hit/miss: hit/miss a character   eof: end of file
-// success: success finish function wrong: wrong data
+// good: good finish function wrong: wrong data
 typedef pair<HuffmanState, char> HuffmanResponse;
 
 class Huffman {
@@ -25,12 +25,12 @@ private:
 
         Node(Node* left = NULL, Node* right = NULL, char value = (char) 0);
 
-        bool isEnd();
+        bool isEnd() const;
         /**
          * Check wheather this node is an end node.
          */
 
-        bool isEOF();
+        bool isEOF() const;
         /**
          * Check wheather this node means the EOF flag.
          */
@@ -44,10 +44,10 @@ private:
 
     char table[256][300];
 
-    ~Huffman();
-
     typedef pair<int, Node*> HeapNode;
     bool cmp(const HeapNode&, const HeapNode&);
+
+    HuffmanState buildTable(const Node *x, char* buffer, int n, int m);
 
 public:
     Huffman();
@@ -58,7 +58,7 @@ public:
      * Each character occurs once in vector.
      * numOfChar: A positive integer the number of character.
      * Construct a huffman tree by its character(ascii) and frequency.
-     * Return success if normal, otherwise wrong.
+     * Return good if normal, otherwise wrong.
      * */
 
     HuffmanState walk(const bool zeroOrOne, char &resultCharacter);
@@ -79,6 +79,8 @@ public:
      * huffmanCode: character pointer point to huffmancode.
      * If not this character encrypt, return wrong flag.
      * */
+
+    ~Huffman();
 };
 
 #endif

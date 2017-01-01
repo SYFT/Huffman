@@ -7,11 +7,11 @@ Huffman::Node::Node(
     value = _value, child[0] = left, child[1] = right;
 }
 
-bool Huffman::Node::isEnd() {
+bool Huffman::Node::isEnd() const {
     return !(child[0] || child[1]);
 }
 
-bool Huffman::Node::isEOF() {
+bool Huffman::Node::isEOF() const {
     return isEnd() && value == 0;
 }
 
@@ -37,6 +37,26 @@ bool Huffman::cmp(const HeapNode& a, const HeapNode& b) {
     return a.second->value > b.second->value;
 }
 
+HuffmanState Huffman::buildTable(const Node* x, char* buffer, int n, int m) {
+    if(n >= m) return wrong;
+
+    if(x->isEnd())
+        memcpy(table[(int) x->value], buffer, n * sizeof(char));
+    else {
+        if(x->child[0]) {
+            buffer[n++] = '0';
+            buildTable(x->child[0], buffer, n, m);
+            buffer[--n] = 0;
+        }
+        if(x->child[1]) {
+            buffer[n++] = '1';
+            buildTable(x->child[1], buffer, n, m);
+            buffer[--n] = 0;
+        }
+    }
+    return good;
+}
+
 HuffmanState Huffman::init(const vector<HuffmanChar> w) {
     int n = w.size();
     if(n < 1) return wrong;
@@ -55,8 +75,8 @@ HuffmanState Huffman::init(const vector<HuffmanChar> w) {
         return wrong;
     }
 
-    typedef bool (*comp)(const HeapNode&, const HeapNode&);
-    priority_queue<HeapNode, vector<HeapNode>, comp> heap;
+    typedef bool (*cmp)(const HeapNode&, const HeapNode&);
+    priority_queue<HeapNode, vector<HeapNode>, cmp> heap;
     for(int i = 0; i < n; ++i)
         heap.push(make_pair(w[i].first, nodes[i]));
 
@@ -70,8 +90,14 @@ HuffmanState Huffman::init(const vector<HuffmanChar> w) {
     }
     root = heap.top().second;
 
+    char *buffer = new char [n];
+    memset(buffer, 0, sizeof(char) * n);
+    HuffmanState s = buildTable(root, buffer, 0, n);
+    delete [] buffer;
+
+    if(s == wrong) return wrong;
     isInit = true;
-    return success;
+    return good;
 }
 
 HuffmanState Huffman::walk(const bool lr, char &ret) {
@@ -96,6 +122,6 @@ HuffmanState Huffman::query(char character, const char*& ret) const {
     ret = NULL;
     if(!strlen(table[(int) character])) return wrong;
     ret = table[(int) character];
-    return success;
+    return good;
 }
 
