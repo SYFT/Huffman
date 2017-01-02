@@ -6,6 +6,7 @@
 #include <vector>
 #include <queue>
 #include <cstring>
+#include <algorithm>
 using namespace std;
 
 typedef pair<int, char> HuffmanChar;

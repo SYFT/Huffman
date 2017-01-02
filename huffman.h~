@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <vector>
 #include <queue>
-#include <cstring>
+#include <algorithm>
 using namespace std;
 
 typedef pair<int, char> HuffmanChar;
@@ -17,7 +17,7 @@ typedef pair<HuffmanState, char> HuffmanResponse;
 
 class Huffman {
 
-private:
+public:
     struct Node {
         int weight;
         Node *child[2];

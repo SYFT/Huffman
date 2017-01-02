@@ -12,7 +12,7 @@ typedef enum {success, fail, interrupt} IOState;
 
 template<int T>
 class Dumper {
-private:
+public:
     Block now[T];
     int bitIndex;
     ofstream out;
@@ -20,8 +20,10 @@ private:
 
     void reset() {
         int blockNum = (bitIndex - 1) / 8;
-        if(out.good() && blockNum && bitIndex)
+        if(out.good() && bitIndex) {
             out.write((char*) now, sizeof(Block) * (blockNum + 1));
+            if(out.fail()) bad = true;
+        }
         memset(now, 0, sizeof(now)), bitIndex = 0;
     }
     /**
@@ -39,7 +41,7 @@ public:
      * */
 
     bool isBad() const {
-        return bad || !out.good();
+        return bad;
     }
     /**
      * Check wheather the loader is bad or not.
@@ -65,7 +67,14 @@ public:
     IOState writeType(K nex) {
         if(isBad()) return fail;
 
-        out.write((char*) &nex, sizeof(K));
+        // out.write((char*) &nex, sizeof(K));
+        int bits = sizeof(K) * 8;
+        for(int i = 0; i < bits; ++i) {
+            bool b = (nex >> i) & 1;
+            IOState s = writeBit(b);
+            if(s == fail) return fail;
+        }
+
         if(!out.good()) return fail;
         return success;
     }
@@ -77,6 +86,7 @@ public:
     ~Dumper() {
         reset();
         out.flush();
+        out.close();
     }
 };
 
@@ -89,10 +99,11 @@ public:
     bool bad;
 
     void reset() {
-        if(isBad()) bitLimit = in.read((char*) now, sizeof(Block) * T);
-        else bitLimit = 0;
-        bitLimit *= 8;
         memset(now, 0, sizeof(now)), bitIndex = 0;
+        if(!isBad()) {
+            in.read((char*) now, sizeof(Block) * T);
+            bitLimit = in.gcount() * 8;
+        } else bitLimit = 0;
     }
     /**
      * Load buffer.
@@ -101,6 +112,7 @@ public:
 public:
     Loader(const string& filename) {
         in.open(filename.c_str(), ifstream::in | ifstream::binary);
+        bad = false;
         reset();
     }
     /**
@@ -108,7 +120,7 @@ public:
      * */
 
     bool isBad() {
-        return bad || !in.good();
+        return bad;
     }
     /**
      * Check wheather the loader is bad or not.
@@ -138,7 +150,16 @@ public:
     IOState readType(K &nex) {
         if(isBad()) return fail;
 
-        in.read((char*) &nex, sizeof(nex));
+        // in.read((char*) &nex, sizeof(K));
+        int bits = sizeof(K) * 8;
+        nex = 0;
+        for(int i = 0; i < bits; ++i) {
+            bool b;
+            IOState s = readBit(b);
+            if(s == fail) return fail;
+            nex |= b << i;
+        }
+        if(!in.good()) return fail;
         return success;
     }
     /**
@@ -147,8 +168,7 @@ public:
      * */
 
     ~Loader() {
-        delete in;
-        in = NULL;
+        in.close();
     }
 };
 

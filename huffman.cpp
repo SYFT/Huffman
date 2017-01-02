@@ -36,14 +36,14 @@ bool Huffman::cmp::operator ()(
         const Huffman::HeapNode& a,
         const Huffman::HeapNode& b) {
     if(a.first != b.first) return a.first > b.first;
-    return a.second->value > b.second->value;
+    return a.second->weight > b.second->weight;
 }
 
 HuffmanState Huffman::buildTable(const Node* x, char* buffer, int n, int m) {
     if(n >= m) return wrong;
 
     if(x->isEnd())
-        memcpy(table[(int) x->value], buffer, n * sizeof(char));
+        memcpy(table[(unsigned char) x->value], buffer, n * sizeof(char));
     else {
         if(x->child[0]) {
             buffer[n++] = '0';
@@ -59,11 +59,13 @@ HuffmanState Huffman::buildTable(const Node* x, char* buffer, int n, int m) {
     return good;
 }
 
-HuffmanState Huffman::init(const vector<HuffmanChar> w) {
+HuffmanState Huffman::init(vector<HuffmanChar> w) {
     int n = w.size();
     if(n < 1) return wrong;
 
     Node** nodes = NULL;
+
+    sort(w.begin(), w.end());
 
     try {
         nodes = new Node* [n];
@@ -71,6 +73,7 @@ HuffmanState Huffman::init(const vector<HuffmanChar> w) {
         for(int i = 0; i < n; ++i) {
             nodes[i] = new Node();
             nodes[i]->value = w[i].second;
+            nodes[i]->weight = i;
         }
     }
     catch(exception) {
@@ -80,6 +83,7 @@ HuffmanState Huffman::init(const vector<HuffmanChar> w) {
     priority_queue<HeapNode, vector<HeapNode>, cmp> heap;
     for(int i = 0; i < n; ++i)
         heap.push(make_pair(w[i].first, nodes[i]));
+    int debug = n;
 
     while((int) heap.size() > 1) {
         HeapNode left = heap.top();
@@ -87,17 +91,18 @@ HuffmanState Huffman::init(const vector<HuffmanChar> w) {
         HeapNode right = heap.top();
         heap.pop();
         Node *father = new Node(left.second, right.second);
+        father->weight = debug++;
         heap.push(make_pair(left.first + right.first, father));
     }
     root = heap.top().second;
 
-    char *buffer = new char [n];
-    memset(buffer, 0, sizeof(char) * n);
-    HuffmanState s = buildTable(root, buffer, 0, n);
+    char *buffer = new char [n + 10];
+    memset(buffer, 0, sizeof(char) * (n + 10));
+    HuffmanState s = buildTable(root, buffer, 0, n + 10);
     delete [] buffer;
 
     if(s == wrong) return wrong;
-    isInit = true;
+    isInit = true, nowAt = NULL;
     return good;
 }
 
@@ -121,8 +126,8 @@ HuffmanState Huffman::walk(const bool lr, char &ret) {
 
 HuffmanState Huffman::query(char character, const char*& ret) const {
     ret = NULL;
-    if(!strlen(table[(int) character])) return wrong;
-    ret = table[(int) character];
+    if(!strlen(table[(unsigned char) character])) return wrong;
+    ret = table[(unsigned char) character];
     return good;
 }
 
