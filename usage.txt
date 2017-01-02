@@ -10,15 +10,11 @@ Usage:
     or
     > huffmanDecoding
 
-    Or you can use a combine interact version "huffmanMain" for more help or functions.
-
 Compile:
     Please use command below for compiling.
     Compile huffmanCoding:
         > g++ huffmanCoding.cpp huffman.cpp -o huffmanCoding
     Compile huffmanDecoding:
         > g++ huffmanDecoding.cpp huffman.cpp -o huffmanDecoding
-    Compile huffmanMain:
-        > g++ huffmanMain.cpp huffman.cpp -o huffmanMain
     Or using IDE for convenience.
 

@@ -36,6 +36,7 @@ int main(int argc, char *argv[]) {
     } else {
         cout << "Invalid parameter list." << endl;
         cout << "Try: " << argv[0] << " inputfilename outputfilename" << endl;
+        cout << "See usage.txt for more help." << endl;
     }
     return 0;
 }
