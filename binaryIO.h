@@ -15,12 +15,13 @@ class Dumper {
 private:
     Block now[T];
     int bitIndex;
-    ostream* out;
+    ofstream out;
     bool bad;
 
     void reset() {
-        int blockNum = bitIndex / 8;
-        out->write((char*) now, sizeof(Block) * blockNum);
+        int blockNum = (bitIndex - 1) / 8;
+        if(out.good() && blockNum && bitIndex)
+            out.write((char*) now, sizeof(Block) * (blockNum + 1));
         memset(now, 0, sizeof(now)), bitIndex = 0;
     }
     /**
@@ -28,18 +29,9 @@ private:
      * */
 
 public:
-    Dumper(ostream& outputStream) {
-        out = &outputStream;
-        bad = false;
-        reset();
-    }
-    /**
-     * Use this ostream object as output stream.
-     * */
-
     Dumper(const string& filename) {
-        out = new ofstream(filename.c_str(), ios::binary | ios::out);
-        bad = false;
+        out.open(filename.c_str(), ofstream::binary | ofstream::out);
+        bad = false, bitIndex = 0;
         reset();
     }
     /**
@@ -47,7 +39,7 @@ public:
      * */
 
     bool isBad() const {
-        return bad || !out->good();
+        return bad || !out.good();
     }
     /**
      * Check wheather the loader is bad or not.
@@ -58,7 +50,9 @@ public:
 
         int blockIndex = bitIndex / 8;
         int reminder = bitIndex % 8;
-        now[blockIndex] |= 1 << reminder;
+        if((now[blockIndex] >> reminder) & 1)
+            now[blockIndex] ^= 1 << reminder;
+        now[blockIndex] |= (nextBit ? 1 : 0) << reminder;
         ++bitIndex;
         if(bitIndex >= T * 8) reset();
         return success;
@@ -71,14 +65,8 @@ public:
     IOState writeType(K nex) {
         if(isBad()) return fail;
 
-        bool bits[32];
-        int len = sizeof(K) * 8;
-        for(int i = 0; i < len; ++i, nex >>= 1)
-            bits[i] = nex & 1;
-        for(int i = len - 1; i >= 0; --i) {
-            IOState s = writeBit(bits[i]);
-            if(s == fail) return fail;
-        }
+        out.write((char*) &nex, sizeof(K));
+        if(!out.good()) return fail;
         return success;
     }
     /**
@@ -88,22 +76,21 @@ public:
 
     ~Dumper() {
         reset();
-        out->flush();
-        delete out;
-        out = NULL;
+        out.flush();
     }
 };
 
 template<int T>
 class Loader {
-private:
+public:
     Block now[T];
     int bitIndex, bitLimit;
-    istream* in;
+    ifstream in;
     bool bad;
 
     void reset() {
-        bitLimit = in->read((char*) now, sizeof(Block) * T);
+        if(isBad()) bitLimit = in.read((char*) now, sizeof(Block) * T);
+        else bitLimit = 0;
         bitLimit *= 8;
         memset(now, 0, sizeof(now)), bitIndex = 0;
     }
@@ -112,16 +99,8 @@ private:
      * */
 
 public:
-    Loader(istream& inputStream) {
-        in = &inputStream;
-        reset();
-    }
-    /**
-     * Use this istream object as input stream.
-     * */
-
     Loader(const string& filename) {
-        in = new ifstream(filename.c_str(), ios::in | ios::binary);
+        in.open(filename.c_str(), ifstream::in | ifstream::binary);
         reset();
     }
     /**
@@ -129,9 +108,7 @@ public:
      * */
 
     bool isBad() {
-        if(bad) return true;
-        if(in->bad() || in->fail()) return true;
-        return false;
+        return bad || !in.good();
     }
     /**
      * Check wheather the loader is bad or not.
@@ -154,21 +131,14 @@ public:
         return success;
     }
     /**
-     * Set nextBit as istream next bit.
+     * Set nextBit as ifstream next bit.
      * */
 
     template<class K>
     IOState readType(K &nex) {
         if(isBad()) return fail;
 
-        nex = (K) 0;
-        for(int i = sizeof(nex) * 8; i >= 1; --i) {
-            bool x;
-            IOState s = readBit(x);
-            if(s == fail) return fail;
-            nex = (nex << 1) | x;
-        }
-
+        in.read((char*) &nex, sizeof(nex));
         return success;
     }
     /**

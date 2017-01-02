@@ -17,7 +17,7 @@ typedef pair<HuffmanState, char> HuffmanResponse;
 
 class Huffman {
 
-private:
+public:
     struct Node {
         int weight;
         Node *child[2];
@@ -37,15 +37,14 @@ private:
 
         ~Node();
     };
+    typedef pair<int, Node*> HeapNode;
+
     Node *root;
     bool isInit;
 
     Node *nowAt;
 
     char table[256][300];
-
-    typedef pair<int, Node*> HeapNode;
-    bool cmp(const HeapNode&, const HeapNode&);
 
     HuffmanState buildTable(const Node *x, char* buffer, int n, int m);
 
@@ -81,6 +80,10 @@ public:
      * */
 
     ~Huffman();
+
+    struct cmp {
+        bool operator ()(const HeapNode&, const HeapNode&);
+    };
 };
 
 #endif

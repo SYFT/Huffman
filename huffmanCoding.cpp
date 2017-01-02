@@ -5,7 +5,7 @@ using namespace std;
 
 void compress(string input, string output) {
     Huffman *huffman = new Huffman();
-    ifstream in(input.c_str(), ios::in);
+    ifstream in(input.c_str(), ifstream::in);
     int cnt[256] = {0};
     string line;
     while(getline(in, line)) {
@@ -29,8 +29,10 @@ void compress(string input, string output) {
         dumper->writeType((char) vec[i].second);
         dumper->writeType((int) vec[i].first);
     }
-    in.seekg(0, ios::beg);
+    in.close();
+    in.open(input.c_str(), ifstream::in);
     while(getline(in, line)) {
+        cout << line << endl;
         int m = line.length();
         for(int i = 0; i < m; ++i) {
             const char *code;
@@ -43,9 +45,13 @@ void compress(string input, string output) {
                 dumper->writeBit(code[j] - '0');
         }
     }
+    const char *eofCode;
+    HuffmanState s = huffman->query(0, eofCode);
+    if(s == wrong) return;
+    int l = strlen(eofCode);
+    for(int i = 0; i < l; ++i) dumper->writeBit(eofCode[i] - '0');
 
     in.close();
-
     delete huffman;
     delete dumper;
 }

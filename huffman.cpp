@@ -32,7 +32,9 @@ Huffman::~Huffman() {
     isInit = false;
 }
 
-bool Huffman::cmp(const HeapNode& a, const HeapNode& b) {
+bool Huffman::cmp::operator ()(
+        const Huffman::HeapNode& a,
+        const Huffman::HeapNode& b) {
     if(a.first != b.first) return a.first > b.first;
     return a.second->value > b.second->value;
 }
@@ -75,7 +77,6 @@ HuffmanState Huffman::init(const vector<HuffmanChar> w) {
         return wrong;
     }
 
-    typedef bool (*cmp)(const HeapNode&, const HeapNode&);
     priority_queue<HeapNode, vector<HeapNode>, cmp> heap;
     for(int i = 0; i < n; ++i)
         heap.push(make_pair(w[i].first, nodes[i]));
