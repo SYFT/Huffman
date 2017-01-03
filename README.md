@@ -21,4 +21,7 @@ Compile huffmanCoding:
     \> g++ huffmanCoding.cpp huffman.cpp -o huffmanCoding  
 Compile huffmanDecoding:  
     \> g++ huffmanDecoding.cpp huffman.cpp -o huffmanDecoding  
+
+## Penalty:
+To store huffman informations, when compreessing small file, the resulting file might larger than origin file.   
   

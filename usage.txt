@@ -18,3 +18,7 @@ Compile:
         > g++ huffmanDecoding.cpp huffman.cpp -o huffmanDecoding
     Or using IDE for convenience.
 
+Penalty:
+    To store huffman informations, when compreessing small file, the resulting
+    file might larger than origin file. 
+
