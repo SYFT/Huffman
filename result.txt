@@ -1,1 +1,0 @@
-正在比较文件 stud.dat 和 STUD.OUT
